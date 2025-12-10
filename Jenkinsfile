@@ -160,7 +160,7 @@ pipeline {
             }
         }
 
-           // ✅ THIS MUST BE INSIDE stages {}
+           
         stage('EKS-Deployment') {
             steps {
                 withKubeConfig(
@@ -177,5 +177,5 @@ pipeline {
             }
         }
 
-    } // ✅ end of stages
-}     // ✅ end of pipeline
+    } 
+}     
