@@ -1,27 +1,18 @@
 pipeline {
     agent any
-   // environment {
-       // SCANNER_HOME = tool 'sonar-scanner'
-
- //  }
 
     stages {
-         //   stage('SonarQube') {
-       //      steps {
-        //        withSonarQubeEnv('sonar-scanner') {
-          //          sh '''$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectKey=Microservice_Deployment -Dsonar.ProjectName=Microservice_Deployment -Dsonar.java.binaries=.'''
-            //    }
-         //   }
-       // }
-            stage('adservice') {
-              steps {
-               script {
-                 withDockerRegistry(credentialsId: 'dockerpass', toolName: 'docker') {
-                    dir('/var/lib/jenkins/workspace/Microservice_Deployment/src/adservice/') {
-                        sh "docker build -t adewale23/adservice:latest ."
-                        sh "docker push adewale23/adservice:latest"
-                        sh "docker rmi adewale23/adservice:latest"
-                        sh 'docker system prune -a -f --volumes'
+
+        stage('adservice') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'dockerpass', toolName: 'docker') {
+                        dir('/var/lib/jenkins/workspace/Microservice_Deployment/src/adservice/') {
+                            sh "docker build -t adewale23/adservice:latest ."
+                            sh "docker push adewale23/adservice:latest"
+                            sh "docker rmi adewale23/adservice:latest"
+                            sh 'docker system prune -a -f --volumes'
+                        }
                     }
                 }
             }
@@ -154,32 +145,37 @@ pipeline {
             }
         }
              }
-             stage('shippingservice') {
-              steps {
-               script {
-                 withDockerRegistry(credentialsId: 'dockerpass', toolName: 'docker') {
-                    dir("/var/lib/jenkins/workspace/Microservice_Deployment/src/shippingservice/") {
-                        sh "docker build -t adewale23/shippingservice:latest ."
-                        sh "docker push adewale23/shippingservice:latest"
-                        sh "docker rmi adewale23/shippingservice:latest"
-                        sh 'docker system prune -a -f --volumes'
+                stage('shippingservice') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'dockerpass', toolName: 'docker') {
+                        dir("/var/lib/jenkins/workspace/Microservice_Deployment/src/shippingservice/") {
+                            sh "docker build -t adewale23/shippingservice:latest ."
+                            sh "docker push adewale23/shippingservice:latest"
+                            sh "docker rmi adewale23/shippingservice:latest"
+                            sh 'docker system prune -a -f --volumes'
+                        }
                     }
                 }
             }
         }
-    }
 
-              stage('EKS-Deployment') {
+           // ✅ THIS MUST BE INSIDE stages {}
+        stage('EKS-Deployment') {
             steps {
-               withKubeConfig(caCertificate: '', clusterName: 'myAppp-eks-cluster', contextName: '', credentialsId: 'k8s', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: ' https://111A3DF2959BD33A6C241D0498463952.gr7.us-east-1.eks.amazonaws.com') {
-    // some block
-}
+                withKubeConfig(
+                    clusterName: 'myAppp-eks-cluster',
+                    credentialsId: 'k8s',
+                    namespace: 'webapps',
+                    serverUrl: 'https://111A3DF2959BD33A6C241D0498463952.gr7.us-east-1.eks.amazonaws.com',
+                    restrictKubeConfigAccess: false
+                ) {
                     sh 'kubectl apply -f deployment-service.yaml'
                     sh 'kubectl get pods'
                     sh 'kubectl get svc'
-
-                }
                 }
             }
         }
-   }
+
+    } // ✅ end of stages
+}     // ✅ end of pipeline
